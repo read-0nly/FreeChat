@@ -7,11 +7,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Net;
 
-namespace WindowsFormsApplication1
+namespace FreeChat
 {
     public partial class Form1 : Form
     {
+        ConnectionManager cm;
         public Form1()
         {
             InitializeComponent();
@@ -24,6 +26,20 @@ namespace WindowsFormsApplication1
             colorDialog1.ShowDialog();
             button1.BackColor = colorDialog1.Color;
 
+        }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+
+        }
+
+        private void tabControl1_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (tabControl1.SelectedIndex == 1)
+            {
+                cm = new ConnectionManager(int.Parse(receivePortTB.Text), int.Parse(sendPortTB.Text));
+
+            }
         }
     }
 }
