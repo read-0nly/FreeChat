@@ -31,10 +31,10 @@ namespace FreeChat
 
          //   textBox3.Text = "S:" + textBox2.Text + ":" +((int)(DateTime.Now.Ticks/100)).ToString("X8")+":"+ textBox1.Text;
    
-        private void button1_Click_1(object sender, EventArgs e)
+        private void button1_Click(object sender, EventArgs e)
         {
             colorDialog1.ShowDialog();
-            button1.BackColor = colorDialog1.Color;
+            colorBtn.BackColor = colorDialog1.Color;
 
         }
 
@@ -47,17 +47,50 @@ namespace FreeChat
         {
             if (tabControl1.SelectedIndex == 1)
             {
-                cm = new ConnectionManager(int.Parse(receivePortTB.Text), int.Parse(sendPortTB.Text));
-                selfEndpointTB.Text = cm.encodeEndpointAddress(cm.selfInPoint, cm.selfOutPoint);
+                if ((receivePortTB.Text == "") || (sendPortTB.Text == ""))
+                {
+                    tabControl1.SelectedIndex = 0;
+                    MessageBox.Show("Set your ports!");
+                }
+                else if (receivePortTB.Text == sendPortTB.Text)
+                {
+                    tabControl1.SelectedIndex = 0;
+                    MessageBox.Show("You need to pick two separate ports!");
+
+                }
+                else if (nameTB.Text == "")
+                {
+                    tabControl1.SelectedIndex = 0;
+                    MessageBox.Show("Set your name!");
+
+                }
+                else if (colorBtn.BackColor == null)
+                {
+                    tabControl1.SelectedIndex = 0;
+                    MessageBox.Show("How did you manage to break colors?");
+
+                }
+                else
+                {
+                    cm = new ConnectionManager(int.Parse(receivePortTB.Text), int.Parse(sendPortTB.Text));
+                    selfEndpointTB.Text = cm.encodeEndpointAddress(cm.selfInPoint, cm.selfOutPoint);
+                }
             }
         }
 
         private void connectBtn_Click(object sender, EventArgs e)
         {
-            cm.loadRemoteEndpointPair(cm.decodeEndpointAddress(remoteEndpointTB.Text));
-            cm.tunnelPaths();
-            listenSwitch = true;
-            thread.Start();  
+            try
+            {
+                cm.loadRemoteEndpointPair(cm.decodeEndpointAddress(remoteEndpointTB.Text));
+                cm.tunnelPaths();
+                listenSwitch = true;
+            }
+            catch (Exception ex){
+                MessageBox.Show("Connection failed!");
+            }
+            if (!thread.IsAlive) { thread.Start(); };
+            secretTb.Enabled = false;
         }
         private void listenLoop()
         {
