@@ -339,6 +339,9 @@
             this.chatMsgTb.Name = "chatMsgTb";
             this.chatMsgTb.Size = new System.Drawing.Size(196, 20);
             this.chatMsgTb.TabIndex = 1;
+            this.chatMsgTb.KeyDown += new System.Windows.Forms.KeyEventHandler(this.chatMsgTb_KeyDown);
+            this.chatMsgTb.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.chatMsgTb_KeyPress);
+            this.chatMsgTb.Validating += new System.ComponentModel.CancelEventHandler(this.chatMsgTb_Validating);
             // 
             // chatSendBtn
             // 

@@ -108,7 +108,10 @@ namespace FreeChat
 
         private void chatSendBtn_Click(object sender, EventArgs e)
         {
-            
+            sendChatMessage();
+        }
+        private void sendChatMessage()
+        {
             string colorcode = colorDialog1.Color.R.ToString("X2") + colorDialog1.Color.G.ToString("X2") + colorDialog1.Color.B.ToString("X2");
             string msg = "" +
                 WebUtility.UrlEncode(nameTB.Text) + ":" +
@@ -116,6 +119,7 @@ namespace FreeChat
                 colorcode + ":" +
                 WebUtility.UrlEncode(chatMsgTb.Text + ";");
             MsgStack.Add(msg);
+            chatMsgTb.Text = "";
         }
 
         private void timer1_Tick(object sender, EventArgs e)
@@ -305,6 +309,24 @@ namespace FreeChat
         private void button2_Click(object sender, EventArgs e)
         {
             secretTb.Text = cm.generateKey();
+        }
+
+        private void chatMsgTb_Validating(object sender, CancelEventArgs e)
+        {
+
+        }
+
+        private void chatMsgTb_KeyPress(object sender, KeyPressEventArgs e)
+        {
+
+        }
+
+        private void chatMsgTb_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter)
+            {
+                sendChatMessage();
+            }
         }
 
     }
