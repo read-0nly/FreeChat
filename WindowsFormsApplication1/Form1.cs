@@ -83,7 +83,17 @@ namespace FreeChat
             try
             {
                 cm.loadRemoteEndpointPair(cm.decodeEndpointAddress(remoteEndpointTB.Text));
-                cm.tunnelPaths();
+                if (secretTb.Text != "")
+                {
+                    byte[] key = Convert.FromBase64String(secretTb.Text.Split(':')[0]);
+                    byte[] iv = Convert.FromBase64String(secretTb.Text.Split(':')[1]);
+                    cm.tunnelPaths(key, iv);
+
+                }
+                else
+                {
+                    cm.tunnelPaths();
+                }
                 listenSwitch = true;
             }
             catch (Exception ex){
@@ -336,6 +346,20 @@ namespace FreeChat
                         cm.tunnelPaths();
                     }
                 }
+                else
+                {
+                    if (secretTb.Text != "")
+                    {
+                        byte[] key = Convert.FromBase64String(secretTb.Text.Split(':')[0]);
+                        byte[] iv = Convert.FromBase64String(secretTb.Text.Split(':')[1]);
+                        cm.keepAlive(key, iv);
+
+                    }
+                    else
+                    {
+                        cm.keepAlive();
+                    }
+                }
             }
         }
 
@@ -360,6 +384,12 @@ namespace FreeChat
             {
                 sendChatMessage();
             }
+        }
+        
+        private void button2_Click_2(object sender, EventArgs e)
+        {
+            secretTb.Text = cm.generateKey();
+
         }
 
     }

@@ -87,7 +87,6 @@
             // 
             // tabPage1
             // 
-            this.tabPage1.Controls.Add(this.groupBox3);
             this.tabPage1.Controls.Add(this.groupBox2);
             this.tabPage1.Controls.Add(this.groupBox1);
             this.tabPage1.Location = new System.Drawing.Point(4, 25);
@@ -197,6 +196,7 @@
             // 
             // tabPage2
             // 
+            this.tabPage2.Controls.Add(this.groupBox3);
             this.tabPage2.Controls.Add(this.disconnectBtn);
             this.tabPage2.Controls.Add(this.connectBtn);
             this.tabPage2.Controls.Add(this.groupBox4);
@@ -354,10 +354,10 @@
             this.groupBox3.Controls.Add(this.button2);
             this.groupBox3.Controls.Add(this.label6);
             this.groupBox3.Controls.Add(this.secretTb);
-            this.groupBox3.Location = new System.Drawing.Point(20, 172);
+            this.groupBox3.Location = new System.Drawing.Point(21, 114);
             this.groupBox3.Name = "groupBox3";
             this.groupBox3.Size = new System.Drawing.Size(248, 73);
-            this.groupBox3.TabIndex = 7;
+            this.groupBox3.TabIndex = 8;
             this.groupBox3.TabStop = false;
             this.groupBox3.Text = "Encryption Settings";
             // 
@@ -370,6 +370,7 @@
             this.button2.TabIndex = 3;
             this.button2.Text = "Generate";
             this.button2.UseVisualStyleBackColor = true;
+            this.button2.Click += new System.EventHandler(this.button2_Click_2);
             // 
             // label6
             // 

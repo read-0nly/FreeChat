@@ -80,11 +80,22 @@ namespace FreeChat
             sendString("!:PingPong", remoteInPoint, outClient);
             sendString("!:PingPong", remoteOutPoint, inClient);
         }
+        public void keepAlive()
+        {
+            getEndpoint(inClient);
+            getEndpoint(outClient);
+        }
         public void tunnelPaths(byte[] key, byte[] iv)
         {
             byte[] encPing = this.EncryptStringToBytes("!:PingPong", key, iv);
             sendBytes(encPing, remoteInPoint, outClient);
             sendBytes(encPing, remoteOutPoint, inClient);
+        }
+        public void keepAlive(byte[] key, byte[] iv)
+        {
+            byte[] encPing = this.EncryptStringToBytes("!:PingPong", key, iv);
+            sendBytes(encPing, selfInPoint, outClient);
+            sendBytes(encPing, selfOutPoint, inClient);
         }
         IPEndPoint getEndpoint(UdpClient udp)
         {            
