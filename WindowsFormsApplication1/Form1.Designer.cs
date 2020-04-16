@@ -44,14 +44,7 @@
             this.tabPage2 = new System.Windows.Forms.TabPage();
             this.groupBox3 = new System.Windows.Forms.GroupBox();
             this.label6 = new System.Windows.Forms.Label();
-            this.textBox1 = new System.Windows.Forms.TextBox();
-            this.groupBox5 = new System.Windows.Forms.GroupBox();
-            this.connectorStatus = new System.Windows.Forms.Label();
-            this.receiverStatus = new System.Windows.Forms.Label();
-            this.senderStatus = new System.Windows.Forms.Label();
-            this.label10 = new System.Windows.Forms.Label();
-            this.label9 = new System.Windows.Forms.Label();
-            this.label8 = new System.Windows.Forms.Label();
+            this.secretTb = new System.Windows.Forms.TextBox();
             this.disconnectBtn = new System.Windows.Forms.Button();
             this.connectBtn = new System.Windows.Forms.Button();
             this.groupBox4 = new System.Windows.Forms.GroupBox();
@@ -66,13 +59,14 @@
             this.colorDialog1 = new System.Windows.Forms.ColorDialog();
             this.timer1 = new System.Windows.Forms.Timer(this.components);
             this.webBrowser1 = new System.Windows.Forms.WebBrowser();
+            this.timer2 = new System.Windows.Forms.Timer(this.components);
+            this.button2 = new System.Windows.Forms.Button();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.groupBox1.SuspendLayout();
             this.tabPage2.SuspendLayout();
             this.groupBox3.SuspendLayout();
-            this.groupBox5.SuspendLayout();
             this.groupBox4.SuspendLayout();
             this.tabPage3.SuspendLayout();
             this.SuspendLayout();
@@ -203,7 +197,6 @@
             // tabPage2
             // 
             this.tabPage2.Controls.Add(this.groupBox3);
-            this.tabPage2.Controls.Add(this.groupBox5);
             this.tabPage2.Controls.Add(this.disconnectBtn);
             this.tabPage2.Controls.Add(this.connectBtn);
             this.tabPage2.Controls.Add(this.groupBox4);
@@ -217,11 +210,12 @@
             // 
             // groupBox3
             // 
+            this.groupBox3.Controls.Add(this.button2);
             this.groupBox3.Controls.Add(this.label6);
-            this.groupBox3.Controls.Add(this.textBox1);
-            this.groupBox3.Location = new System.Drawing.Point(18, 195);
+            this.groupBox3.Controls.Add(this.secretTb);
+            this.groupBox3.Location = new System.Drawing.Point(21, 114);
             this.groupBox3.Name = "groupBox3";
-            this.groupBox3.Size = new System.Drawing.Size(248, 48);
+            this.groupBox3.Size = new System.Drawing.Size(245, 73);
             this.groupBox3.TabIndex = 6;
             this.groupBox3.TabStop = false;
             this.groupBox3.Text = "Encryption Settings";
@@ -235,82 +229,13 @@
             this.label6.TabIndex = 2;
             this.label6.Text = "Secret";
             // 
-            // textBox1
+            // secretTb
             // 
-            this.textBox1.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.textBox1.Location = new System.Drawing.Point(50, 19);
-            this.textBox1.Name = "textBox1";
-            this.textBox1.Size = new System.Drawing.Size(192, 20);
-            this.textBox1.TabIndex = 0;
-            // 
-            // groupBox5
-            // 
-            this.groupBox5.Controls.Add(this.connectorStatus);
-            this.groupBox5.Controls.Add(this.receiverStatus);
-            this.groupBox5.Controls.Add(this.senderStatus);
-            this.groupBox5.Controls.Add(this.label10);
-            this.groupBox5.Controls.Add(this.label9);
-            this.groupBox5.Controls.Add(this.label8);
-            this.groupBox5.Location = new System.Drawing.Point(21, 114);
-            this.groupBox5.Name = "groupBox5";
-            this.groupBox5.Size = new System.Drawing.Size(245, 75);
-            this.groupBox5.TabIndex = 3;
-            this.groupBox5.TabStop = false;
-            this.groupBox5.Text = "Status";
-            // 
-            // connectorStatus
-            // 
-            this.connectorStatus.AutoSize = true;
-            this.connectorStatus.Location = new System.Drawing.Point(109, 46);
-            this.connectorStatus.Name = "connectorStatus";
-            this.connectorStatus.Size = new System.Drawing.Size(63, 13);
-            this.connectorStatus.TabIndex = 5;
-            this.connectorStatus.Text = "Uninitialized";
-            // 
-            // receiverStatus
-            // 
-            this.receiverStatus.AutoSize = true;
-            this.receiverStatus.Location = new System.Drawing.Point(109, 33);
-            this.receiverStatus.Name = "receiverStatus";
-            this.receiverStatus.Size = new System.Drawing.Size(63, 13);
-            this.receiverStatus.TabIndex = 4;
-            this.receiverStatus.Text = "Uninitialized";
-            // 
-            // senderStatus
-            // 
-            this.senderStatus.AutoSize = true;
-            this.senderStatus.Location = new System.Drawing.Point(109, 20);
-            this.senderStatus.Name = "senderStatus";
-            this.senderStatus.Size = new System.Drawing.Size(63, 13);
-            this.senderStatus.TabIndex = 3;
-            this.senderStatus.Text = "Uninitialized";
-            // 
-            // label10
-            // 
-            this.label10.AutoSize = true;
-            this.label10.Location = new System.Drawing.Point(7, 46);
-            this.label10.Name = "label10";
-            this.label10.Size = new System.Drawing.Size(92, 13);
-            this.label10.TabIndex = 2;
-            this.label10.Text = "Connector Status:";
-            // 
-            // label9
-            // 
-            this.label9.AutoSize = true;
-            this.label9.Location = new System.Drawing.Point(7, 33);
-            this.label9.Name = "label9";
-            this.label9.Size = new System.Drawing.Size(86, 13);
-            this.label9.TabIndex = 1;
-            this.label9.Text = "Receiver Status:";
-            // 
-            // label8
-            // 
-            this.label8.AutoSize = true;
-            this.label8.Location = new System.Drawing.Point(7, 20);
-            this.label8.Name = "label8";
-            this.label8.Size = new System.Drawing.Size(77, 13);
-            this.label8.TabIndex = 0;
-            this.label8.Text = "Sender Status:";
+            this.secretTb.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.secretTb.Location = new System.Drawing.Point(50, 19);
+            this.secretTb.Name = "secretTb";
+            this.secretTb.Size = new System.Drawing.Size(189, 20);
+            this.secretTb.TabIndex = 0;
             // 
             // disconnectBtn
             // 
@@ -444,6 +369,23 @@
             this.webBrowser1.TabIndex = 3;
             this.webBrowser1.Url = new System.Uri("about:blank;", System.UriKind.Absolute);
             // 
+            // timer2
+            // 
+            this.timer2.Enabled = true;
+            this.timer2.Interval = 1000;
+            this.timer2.Tick += new System.EventHandler(this.timer2_Tick);
+            // 
+            // button2
+            // 
+            this.button2.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.button2.Location = new System.Drawing.Point(146, 44);
+            this.button2.Name = "button2";
+            this.button2.Size = new System.Drawing.Size(93, 23);
+            this.button2.TabIndex = 3;
+            this.button2.Text = "Generate";
+            this.button2.UseVisualStyleBackColor = true;
+            this.button2.Click += new System.EventHandler(this.button2_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -463,8 +405,6 @@
             this.tabPage2.ResumeLayout(false);
             this.groupBox3.ResumeLayout(false);
             this.groupBox3.PerformLayout();
-            this.groupBox5.ResumeLayout(false);
-            this.groupBox5.PerformLayout();
             this.groupBox4.ResumeLayout(false);
             this.groupBox4.PerformLayout();
             this.tabPage3.ResumeLayout(false);
@@ -489,13 +429,6 @@
         private System.Windows.Forms.TabPage tabPage2;
         private System.Windows.Forms.Button button1;
         private System.Windows.Forms.ColorDialog colorDialog1;
-        private System.Windows.Forms.GroupBox groupBox5;
-        private System.Windows.Forms.Label connectorStatus;
-        private System.Windows.Forms.Label receiverStatus;
-        private System.Windows.Forms.Label senderStatus;
-        private System.Windows.Forms.Label label10;
-        private System.Windows.Forms.Label label9;
-        private System.Windows.Forms.Label label8;
         private System.Windows.Forms.Button disconnectBtn;
         private System.Windows.Forms.Button connectBtn;
         private System.Windows.Forms.GroupBox groupBox4;
@@ -509,9 +442,11 @@
         private System.Windows.Forms.Button chatSendBtn;
         private System.Windows.Forms.GroupBox groupBox3;
         private System.Windows.Forms.Label label6;
-        private System.Windows.Forms.TextBox textBox1;
+        private System.Windows.Forms.TextBox secretTb;
         private System.Windows.Forms.Timer timer1;
         private System.Windows.Forms.WebBrowser webBrowser1;
+        private System.Windows.Forms.Timer timer2;
+        private System.Windows.Forms.Button button2;
 
 
 

@@ -63,7 +63,15 @@ namespace FreeChat
         {
             while (listenSwitch)
             {
-                string msg = Encoding.ASCII.GetString(cm.receiveBytes(cm.inClient));
+                string msg = "";
+                if(secretTb.Text !=""){
+                    byte[] key = Convert.FromBase64String(secretTb.Text.Split(':')[0]);
+                    byte[] iv = Convert.FromBase64String(secretTb.Text.Split(':')[1]);
+                    msg = cm.DecryptStringFromBytes(cm.receiveBytes(cm.inClient), key, iv);
+                }
+                else{
+                    msg=Encoding.ASCII.GetString(cm.receiveBytes(cm.inClient));
+                }
                 
                     this.msgHistory = msg + "\r\n" +this.msgHistory;
                     switch(msg.Substring(0,2))
@@ -136,9 +144,21 @@ namespace FreeChat
                                             ChatMessage msgMsg = new ChatMessage(msg);
                                             bool isDup = false;
                                             // adviseReceived
-                                            cm.sendString(
-                                                ("R:" + msgMsg.owner + ":" + msgMsg.tickCode),
-                                                cm.remoteInPoint, cm.outClient);
+
+                                            if (secretTb.Text != "")
+                                            {
+                                                string message = ("R:" + msgMsg.owner + ":" + msgMsg.tickCode);
+                                                byte[] key = Convert.FromBase64String(secretTb.Text.Split(':')[0]);
+                                                byte[] iv = Convert.FromBase64String(secretTb.Text.Split(':')[1]);
+                                                byte[] msgB = cm.EncryptStringToBytes(message, key, iv);
+                                                cm.sendBytes(msgB, cm.remoteInPoint, cm.outClient);
+                                            }
+                                            else
+                                            {
+                                                cm.sendString(
+                                                    ("R:" + msgMsg.owner + ":" + msgMsg.tickCode),
+                                                    cm.remoteInPoint, cm.outClient);
+                                            }
                                             //identify duplicates and add and rotate.
                                             foreach (ChatMessage histMsg in ConvoStack)
                                             {
@@ -160,7 +180,6 @@ namespace FreeChat
                                             }
 
                                         }
-                                        //cm.sendString(msg, cm.remoteInPoint, cm.outClient);
                                         break;
                                     }
                                 case "!:":
@@ -221,7 +240,17 @@ namespace FreeChat
                             ConvoStack.Insert(0, cMsg);
                         }
                         message = message.Substring(0, message.Length);
-                        cm.sendString(message, cm.remoteInPoint, cm.outClient);
+                        if (secretTb.Text != "")
+                        {
+                            byte[] key = Convert.FromBase64String(secretTb.Text.Split(':')[0]);
+                            byte[] iv = Convert.FromBase64String(secretTb.Text.Split(':')[1]);
+                            byte[] msgB = cm.EncryptStringToBytes(message, key , iv );
+                            cm.sendBytes(msgB, cm.remoteInPoint, cm.outClient);
+                        }
+                        else
+                        {
+                            cm.sendString(message, cm.remoteInPoint, cm.outClient);
+                        }
                     }
                     chatHistoryTb.Text = msgHistory;
                     string pageCode = "<body style='background-color:black;color:white'>";
@@ -229,12 +258,13 @@ namespace FreeChat
                     {
                         pageCode += "<p style='color:#" + cMsg.color + "'>" +
                             "<b>" + WebUtility.UrlDecode(cMsg.owner) + "</b>: " +
-                            "<i>" + WebUtility.UrlDecode(cMsg.message) + "</i>" +
+                            "<i>" + WebUtility.UrlDecode(cMsg.message.Substring(0,cMsg.message.Length-1)) + "</i>" +
                             "</p>";
                     }
-                    webBrowser1.DocumentText = pageCode;
+                    if (webBrowser1.DocumentText != pageCode) { 
+                        webBrowser1.DocumentText = pageCode;
+                    }
 
-                    cm.tunnelPaths();
                 }
             }
         }
@@ -249,6 +279,32 @@ namespace FreeChat
                     cm.outClient.Close();
                 }
             }
+        }
+
+        private void timer2_Tick(object sender, EventArgs e)
+        {
+            if (cm != null)
+            {
+                if (cm.getStatus())
+                {
+                    if (secretTb.Text != "")
+                    {
+                        byte[] key = Convert.FromBase64String(secretTb.Text.Split(':')[0]);
+                        byte[] iv = Convert.FromBase64String(secretTb.Text.Split(':')[1]);
+                        cm.tunnelPaths(key, iv);
+
+                    }
+                    else
+                    {
+                        cm.tunnelPaths();
+                    }
+                }
+            }
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            secretTb.Text = cm.generateKey();
         }
 
     }
