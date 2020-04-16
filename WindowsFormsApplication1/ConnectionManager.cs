@@ -12,12 +12,12 @@ namespace FreeChat
 {
     class ConnectionManager
     {
-        IPEndPoint selfInPoint;
-        IPEndPoint selfOutPoint;
-        IPEndPoint remoteInPoint;
-        IPEndPoint remoteOutPoint;
-        UdpClient inClient;
-        UdpClient outClient;
+        public IPEndPoint selfInPoint;
+        public IPEndPoint selfOutPoint;
+        public IPEndPoint remoteInPoint;
+        public IPEndPoint remoteOutPoint;
+        public UdpClient inClient;
+        public UdpClient outClient;
 
         public ConnectionManager(int inP, int outP)
         {
@@ -30,6 +30,43 @@ namespace FreeChat
             remoteInPoint = new IPEndPoint(endpoint,inport);
             remoteOutPoint = new IPEndPoint(endpoint,outport);
 
+        }
+        public string encodeEndpointAddress(IPEndPoint inPoint, IPEndPoint outPoint)
+        {
+            string encodedAddress = "";
+            foreach (byte adrB in inPoint.Address.GetAddressBytes())
+            {
+                encodedAddress += ((int)adrB).ToString("X2");
+            }
+            encodedAddress += inPoint.Port.ToString("X4");
+            encodedAddress += outPoint.Port.ToString("X4");
+            return encodedAddress;
+
+        }
+        public IPEndPoint[] decodeEndpointAddress(string endPoint)
+        {
+            IPEndPoint[] encodedAddress = new IPEndPoint[2];
+            string ip = Int32.Parse(endPoint.Substring(0, 2), System.Globalization.NumberStyles.HexNumber).ToString() + "." +
+                Int32.Parse(endPoint.Substring(2, 2), System.Globalization.NumberStyles.HexNumber).ToString() + "." +
+                Int32.Parse(endPoint.Substring(4, 2), System.Globalization.NumberStyles.HexNumber).ToString() + "." +
+                Int32.Parse(endPoint.Substring(6, 2), System.Globalization.NumberStyles.HexNumber).ToString();
+            int inPortI = Int32.Parse(endPoint.Substring(8, 4), System.Globalization.NumberStyles.HexNumber);
+            int outPortI = Int32.Parse(endPoint.Substring(12, 4), System.Globalization.NumberStyles.HexNumber);
+            encodedAddress[0] = new IPEndPoint(IPAddress.Parse(ip), inPortI);
+            encodedAddress[1] = new IPEndPoint(IPAddress.Parse(ip), outPortI);
+            return encodedAddress;
+
+        }
+        public void loadRemoteEndpointPair(IPEndPoint[] epPair)
+        {
+            remoteInPoint = epPair[0];
+            remoteOutPoint = epPair[1];
+        }
+
+        public void tunnelPaths()
+        {
+            sendString("!:PingPong", remoteInPoint, outClient);
+            sendString("!:PingPong", remoteOutPoint, inClient);
         }
         IPEndPoint getEndpoint(UdpClient udp)
         {            
@@ -53,19 +90,24 @@ namespace FreeChat
             return new IPEndPoint(IPAddress.Parse(ep.Split(':')[0]), int.Parse(ep.Split(':')[1]));
         }
 
-        public bool sendString(string message, string ep)
+        public bool sendString(string message, string ep, UdpClient udp)
         {
             IPEndPoint target = stringToEndpoint(ep);
             byte[] byteMsg = ASCIIEncoding.ASCII.GetBytes(message);
-            return sendBytes(byteMsg, target);
+            return sendBytes(byteMsg, target, udp);
         }
-        public bool sendBytes(byte[] message, IPEndPoint ep)
+        public bool sendString(string message, IPEndPoint ep, UdpClient udp)
+        {
+            byte[] byteMsg = ASCIIEncoding.ASCII.GetBytes(message);
+            return sendBytes(byteMsg, ep, udp);
+        }
+        public bool sendBytes(byte[] message, IPEndPoint ep, UdpClient udp)
         {
             try
             {
                 // Sends a message to the host to which you have connected.
 
-                outClient.Send(message, message.Length, ep);
+                udp.Send(message, message.Length, ep);
 
                 return true;
             }
@@ -77,7 +119,7 @@ namespace FreeChat
             }
             return false;
         }
-        public byte[] receiveBytes()
+        public byte[] receiveBytes(UdpClient udp)
         {
             try
             {
@@ -85,7 +127,7 @@ namespace FreeChat
                 IPEndPoint RemoteIpEndPoint = new IPEndPoint(IPAddress.Any, 0);
 
                 // Blocks until a message returns on this socket from a remote host.
-                Byte[] receiveBytes = inClient.Receive(ref RemoteIpEndPoint);
+                Byte[] receiveBytes = udp.Receive(ref RemoteIpEndPoint);
                 return receiveBytes;
             }
             catch (Exception e)

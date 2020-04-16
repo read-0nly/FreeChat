@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -14,6 +15,8 @@ namespace FreeChat
     public partial class Form1 : Form
     {
         ConnectionManager cm;
+        string msgHistory = "";
+        bool listenSwitch = false;
         public Form1()
         {
             InitializeComponent();
@@ -38,8 +41,40 @@ namespace FreeChat
             if (tabControl1.SelectedIndex == 1)
             {
                 cm = new ConnectionManager(int.Parse(receivePortTB.Text), int.Parse(sendPortTB.Text));
-
+                selfEndpointTB.Text = cm.encodeEndpointAddress(cm.selfInPoint, cm.selfOutPoint);
             }
         }
+
+        private void connectBtn_Click(object sender, EventArgs e)
+        {
+            cm.loadRemoteEndpointPair(cm.decodeEndpointAddress(remoteEndpointTB.Text));
+            cm.tunnelPaths();
+            listenSwitch = true;
+            Thread thread = new Thread(new ThreadStart(listenLoop));
+            thread.Start();  
+        }
+        private void listenLoop()
+        {
+            while (listenSwitch)
+            {
+                string msg = Encoding.ASCII.GetString(cm.receiveBytes(cm.inClient));
+                lock (this)
+                {
+                    this.msgHistory = msg + "\r\n" +this.msgHistory;
+                }
+            }
+        }
+
+        private void chatSendBtn_Click(object sender, EventArgs e)
+        {
+            string msg = chatMsgTb.Text;
+            cm.sendString(msg, cm.remoteInPoint, cm.outClient);
+        }
+
+        private void timer1_Tick(object sender, EventArgs e)
+        {
+            chatHistoryTb.Text = msgHistory;
+        }
+
     }
 }
