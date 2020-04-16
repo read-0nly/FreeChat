@@ -26,6 +26,16 @@ namespace FreeChat
             selfInPoint = getEndpoint(inClient);
             selfOutPoint = getEndpoint(outClient);
         }
+        public bool getStatus()
+        {
+            return (
+                selfInPoint != null &&
+                selfOutPoint != null &&
+                remoteInPoint != null &&
+                remoteOutPoint != null &&
+                inClient.Client.IsBound &&
+                outClient.Client.IsBound );
+        }
         public void connectToEndpoint(IPAddress endpoint, int inport, int outport){
             remoteInPoint = new IPEndPoint(endpoint,inport);
             remoteOutPoint = new IPEndPoint(endpoint,outport);
@@ -127,7 +137,7 @@ namespace FreeChat
                 IPEndPoint RemoteIpEndPoint = new IPEndPoint(IPAddress.Any, 0);
 
                 // Blocks until a message returns on this socket from a remote host.
-                Byte[] receiveBytes = udp.Receive(ref RemoteIpEndPoint);
+                Byte[] receiveBytes = udp.Receive(ref remoteOutPoint);
                 return receiveBytes;
             }
             catch (Exception e)

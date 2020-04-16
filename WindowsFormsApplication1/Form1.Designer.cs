@@ -35,7 +35,7 @@
             this.button1 = new System.Windows.Forms.Button();
             this.label3 = new System.Windows.Forms.Label();
             this.label4 = new System.Windows.Forms.Label();
-            this.textBox4 = new System.Windows.Forms.TextBox();
+            this.nameTB = new System.Windows.Forms.TextBox();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.label2 = new System.Windows.Forms.Label();
             this.label1 = new System.Windows.Forms.Label();
@@ -65,6 +65,7 @@
             this.chatSendBtn = new System.Windows.Forms.Button();
             this.colorDialog1 = new System.Windows.Forms.ColorDialog();
             this.timer1 = new System.Windows.Forms.Timer(this.components);
+            this.webBrowser1 = new System.Windows.Forms.WebBrowser();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.groupBox2.SuspendLayout();
@@ -107,7 +108,7 @@
             this.groupBox2.Controls.Add(this.button1);
             this.groupBox2.Controls.Add(this.label3);
             this.groupBox2.Controls.Add(this.label4);
-            this.groupBox2.Controls.Add(this.textBox4);
+            this.groupBox2.Controls.Add(this.nameTB);
             this.groupBox2.Location = new System.Drawing.Point(20, 94);
             this.groupBox2.Name = "groupBox2";
             this.groupBox2.Size = new System.Drawing.Size(248, 72);
@@ -144,13 +145,13 @@
             this.label4.TabIndex = 2;
             this.label4.Text = "Name";
             // 
-            // textBox4
+            // nameTB
             // 
-            this.textBox4.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.textBox4.Location = new System.Drawing.Point(142, 19);
-            this.textBox4.Name = "textBox4";
-            this.textBox4.Size = new System.Drawing.Size(100, 20);
-            this.textBox4.TabIndex = 0;
+            this.nameTB.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.nameTB.Location = new System.Drawing.Point(142, 19);
+            this.nameTB.Name = "nameTB";
+            this.nameTB.Size = new System.Drawing.Size(100, 20);
+            this.nameTB.TabIndex = 0;
             // 
             // groupBox1
             // 
@@ -381,6 +382,7 @@
             // 
             // tabPage3
             // 
+            this.tabPage3.Controls.Add(this.webBrowser1);
             this.tabPage3.Controls.Add(this.chatHistoryTb);
             this.tabPage3.Controls.Add(this.chatMsgTb);
             this.tabPage3.Controls.Add(this.chatSendBtn);
@@ -393,15 +395,14 @@
             // 
             // chatHistoryTb
             // 
-            this.chatHistoryTb.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
+            this.chatHistoryTb.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.chatHistoryTb.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.chatHistoryTb.Location = new System.Drawing.Point(8, 31);
+            this.chatHistoryTb.Location = new System.Drawing.Point(8, 152);
             this.chatHistoryTb.Multiline = true;
             this.chatHistoryTb.Name = "chatHistoryTb";
             this.chatHistoryTb.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.chatHistoryTb.Size = new System.Drawing.Size(272, 229);
+            this.chatHistoryTb.Size = new System.Drawing.Size(272, 108);
             this.chatHistoryTb.TabIndex = 2;
             // 
             // chatMsgTb
@@ -431,6 +432,18 @@
             this.timer1.Enabled = true;
             this.timer1.Tick += new System.EventHandler(this.timer1_Tick);
             // 
+            // webBrowser1
+            // 
+            this.webBrowser1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.webBrowser1.Location = new System.Drawing.Point(8, 31);
+            this.webBrowser1.MinimumSize = new System.Drawing.Size(20, 20);
+            this.webBrowser1.Name = "webBrowser1";
+            this.webBrowser1.Size = new System.Drawing.Size(272, 115);
+            this.webBrowser1.TabIndex = 3;
+            this.webBrowser1.Url = new System.Uri("about:blank;", System.UriKind.Absolute);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -439,6 +452,7 @@
             this.Controls.Add(this.tabControl1);
             this.Name = "Form1";
             this.Text = "Form1";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form1_FormClosing);
             this.Load += new System.EventHandler(this.Form1_Load);
             this.tabControl1.ResumeLayout(false);
             this.tabPage1.ResumeLayout(false);
@@ -466,7 +480,7 @@
         private System.Windows.Forms.GroupBox groupBox2;
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.Label label4;
-        private System.Windows.Forms.TextBox textBox4;
+        private System.Windows.Forms.TextBox nameTB;
         private System.Windows.Forms.GroupBox groupBox1;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Label label1;
@@ -497,6 +511,7 @@
         private System.Windows.Forms.Label label6;
         private System.Windows.Forms.TextBox textBox1;
         private System.Windows.Forms.Timer timer1;
+        private System.Windows.Forms.WebBrowser webBrowser1;
 
 
 

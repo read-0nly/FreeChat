@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Net;
+using System.Collections;
 
 namespace FreeChat
 {
@@ -17,9 +18,15 @@ namespace FreeChat
         ConnectionManager cm;
         string msgHistory = "";
         bool listenSwitch = false;
+        Thread thread;
+        ArrayList PacketStack = new ArrayList();
+        ArrayList ReceivedStack = new ArrayList();
+        ArrayList MsgStack = new ArrayList();
+        ArrayList ConvoStack = new ArrayList();
         public Form1()
         {
             InitializeComponent();
+            thread = new Thread(new ThreadStart(listenLoop));
         }
 
          //   textBox3.Text = "S:" + textBox2.Text + ":" +((int)(DateTime.Now.Ticks/100)).ToString("X8")+":"+ textBox1.Text;
@@ -50,7 +57,6 @@ namespace FreeChat
             cm.loadRemoteEndpointPair(cm.decodeEndpointAddress(remoteEndpointTB.Text));
             cm.tunnelPaths();
             listenSwitch = true;
-            Thread thread = new Thread(new ThreadStart(listenLoop));
             thread.Start();  
         }
         private void listenLoop()
@@ -58,22 +64,191 @@ namespace FreeChat
             while (listenSwitch)
             {
                 string msg = Encoding.ASCII.GetString(cm.receiveBytes(cm.inClient));
-                lock (this)
-                {
+                
                     this.msgHistory = msg + "\r\n" +this.msgHistory;
-                }
+                    switch(msg.Substring(0,2))
+                    {
+                        case "S:":
+                            {
+                                lock (this)
+                                {
+                                    PacketStack.Add(msg);
+                                    break;
+                                }
+                            }
+                        case "R:":
+                            {
+                                lock (this)
+                                {
+                                    ReceivedStack.Add(msg);
+                                    break;
+                                }
+                            }
+                        case "!:":
+                            {
+                                lock (this)
+                                {
+                                    PacketStack.Insert(0,msg);
+                                    break;
+                                }
+                            }
+
+                    }
+                
             }
         }
 
         private void chatSendBtn_Click(object sender, EventArgs e)
         {
-            string msg = chatMsgTb.Text;
-            cm.sendString(msg, cm.remoteInPoint, cm.outClient);
+            
+            string colorcode = colorDialog1.Color.R.ToString("X2") + colorDialog1.Color.G.ToString("X2") + colorDialog1.Color.B.ToString("X2");
+            string msg = "" +
+                WebUtility.UrlEncode(nameTB.Text) + ":" +
+                ((int)(DateTime.Now.Ticks / 100)).ToString("X8") + ":" +
+                colorcode + ":" +
+                WebUtility.UrlEncode(chatMsgTb.Text + ";");
+            MsgStack.Add(msg);
         }
 
         private void timer1_Tick(object sender, EventArgs e)
         {
-            chatHistoryTb.Text = msgHistory;
+            if (cm != null)
+            {
+                if (cm.getStatus())
+                {
+                    while (ConvoStack.Count > 11)
+                    {
+                        ConvoStack.RemoveAt(11);
+                    }
+                    //handle Receive queue
+                    ArrayList packetRemove = new ArrayList();
+                    lock(this){
+                        foreach (string packet in PacketStack)
+                        {
+                            switch (packet.Substring(0, 2))
+                            {
+                                case "S:":
+                                    {
+                                        //split packed messages and handle
+                                        string[] msgArray = packet.Substring(2, packet.Length - 2).Split(';');
+                                        foreach (string msg in msgArray)
+                                        {
+                                            ChatMessage msgMsg = new ChatMessage(msg);
+                                            bool isDup = false;
+                                            // adviseReceived
+                                            cm.sendString(
+                                                ("R:" + msgMsg.owner + ":" + msgMsg.tickCode),
+                                                cm.remoteInPoint, cm.outClient);
+                                            //identify duplicates and add and rotate.
+                                            foreach (ChatMessage histMsg in ConvoStack)
+                                            {
+                                                if (histMsg.tickCode == msgMsg.tickCode)
+                                                {
+                                                    if (histMsg.owner == msgMsg.owner)
+                                                    {
+                                                        isDup = true;
+                                                    }
+                                                }
+                                            }
+                                            if (!isDup)
+                                            {
+                                                if (ConvoStack.Count > 10)
+                                                {
+                                                    ConvoStack.RemoveAt(10);
+                                                }
+                                                ConvoStack.Insert(0, msgMsg);
+                                            }
+
+                                        }
+                                        //cm.sendString(msg, cm.remoteInPoint, cm.outClient);
+                                        break;
+                                    }
+                                case "!:":
+                                    {
+                                        switch (packet.Split(':')[1])
+                                        {
+                                            case "PingPong":
+                                                {
+                                                    break;
+                                                }
+
+                                        }
+                                        break;
+                                    }
+
+                            }
+                            packetRemove.Add(packet);
+                        }
+                    }
+
+                    foreach (string packet in packetRemove)
+                    {
+                        PacketStack.Remove(packet);
+                    }
+
+
+                    //remove already-received messages, pack message, send;
+                    ArrayList RemoveBucket = new ArrayList();
+                    foreach (string Sending in MsgStack)
+                    {
+                        lock (this)
+                        {
+                            foreach (string Received in ReceivedStack)
+                            {
+                                if (Sending.Split(':')[0] == Received.Split(':')[1] &&
+                                    Sending.Split(':')[1] == Received.Split(':')[2])
+                                {
+                                    RemoveBucket.Add(Sending);
+                                }
+                            }
+                        }
+                    }
+                    foreach (string RemMsg in RemoveBucket)
+                    {
+                        MsgStack.Remove(RemMsg);
+                    }
+                    if (MsgStack.Count > 0)
+                    {
+                        string message = "S:";
+                        foreach (string Sending in MsgStack)
+                        {
+                            message += Sending;
+                            ChatMessage cMsg = new ChatMessage(Sending);
+                            if (ConvoStack.Count > 10)
+                            {
+                                ConvoStack.RemoveAt(10);
+                            }
+                            ConvoStack.Insert(0, cMsg);
+                        }
+                        message = message.Substring(0, message.Length);
+                        cm.sendString(message, cm.remoteInPoint, cm.outClient);
+                    }
+                    chatHistoryTb.Text = msgHistory;
+                    string pageCode = "<body style='background-color:black;color:white'>";
+                    foreach (ChatMessage cMsg in ConvoStack)
+                    {
+                        pageCode += "<p style='color:#" + cMsg.color + "'>" +
+                            "<b>" + WebUtility.UrlDecode(cMsg.owner) + "</b>: " +
+                            "<i>" + WebUtility.UrlDecode(cMsg.message) + "</i>" +
+                            "</p>";
+                    }
+                    webBrowser1.DocumentText = pageCode;
+
+                    cm.tunnelPaths();
+                }
+            }
+        }
+
+        private void Form1_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            thread.Abort();
+            if (cm != null)
+            {
+                if (cm.getStatus()) { 
+                    cm.inClient.Close();
+                    cm.outClient.Close();
+                }
+            }
         }
 
     }
