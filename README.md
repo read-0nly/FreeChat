@@ -14,3 +14,6 @@ Send your friend your endpoint, enter their endpoint in Remote Endpoint. One of 
 Go to the chat tab, type in the top bar, press enter, watch the chat flow in the black middle box. Bottom box is debug - it's the traffic you're receiving.
 
 ![](./1.png)
+
+
+DO NOT GO BACKWARDS IT WILL CRASH because I'm dumb but also this is a really brute demo
