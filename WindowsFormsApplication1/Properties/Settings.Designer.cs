@@ -190,5 +190,17 @@ namespace FreeChat.Properties {
                 this["ThemeBtnHover"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("20")]
+        public int ChatHistory {
+            get {
+                return ((int)(this["ChatHistory"]));
+            }
+            set {
+                this["ChatHistory"] = value;
+            }
+        }
     }
 }

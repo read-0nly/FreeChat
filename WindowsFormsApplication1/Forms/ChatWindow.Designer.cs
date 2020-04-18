@@ -38,8 +38,9 @@
             this.chatMsgTb = new System.Windows.Forms.TextBox();
             this.selfEndpointTb = new System.Windows.Forms.TextBox();
             this.keepAliveTimer = new System.Windows.Forms.Timer(this.components);
-            this.queueTimer = new System.Windows.Forms.Timer(this.components);
+            this.recvQueueTimer = new System.Windows.Forms.Timer(this.components);
             this.chatHistoryTb = new System.Windows.Forms.TextBox();
+            this.sendQueueTimer = new System.Windows.Forms.Timer(this.components);
             this.menuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -51,30 +52,33 @@
             this.webBrowser1.Location = new System.Drawing.Point(12, 27);
             this.webBrowser1.MinimumSize = new System.Drawing.Size(20, 20);
             this.webBrowser1.Name = "webBrowser1";
-            this.webBrowser1.Size = new System.Drawing.Size(494, 336);
+            this.webBrowser1.ScriptErrorsSuppressed = true;
+            this.webBrowser1.Size = new System.Drawing.Size(584, 336);
             this.webBrowser1.TabIndex = 0;
-            this.webBrowser1.Url = new System.Uri("about:blank", System.UriKind.Absolute);
             this.webBrowser1.DocumentCompleted += new System.Windows.Forms.WebBrowserDocumentCompletedEventHandler(this.webBrowser1_DocumentCompleted);
             // 
             // listBox1
             // 
             this.listBox1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Right)));
+            this.listBox1.Enabled = false;
             this.listBox1.FormattingEnabled = true;
-            this.listBox1.Location = new System.Drawing.Point(512, 27);
+            this.listBox1.Location = new System.Drawing.Point(509, 27);
             this.listBox1.Name = "listBox1";
             this.listBox1.Size = new System.Drawing.Size(87, 212);
             this.listBox1.TabIndex = 1;
+            this.listBox1.Visible = false;
             // 
             // menuStrip1
             // 
+            this.menuStrip1.BackColor = System.Drawing.SystemColors.ButtonFace;
             this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.initializeToolStripMenuItem,
             this.connectToPeerToolStripMenuItem,
             this.settingsToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
-            this.menuStrip1.Size = new System.Drawing.Size(611, 24);
+            this.menuStrip1.Size = new System.Drawing.Size(608, 24);
             this.menuStrip1.TabIndex = 2;
             this.menuStrip1.Text = "menuStrip1";
             // 
@@ -105,14 +109,16 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.chatMsgTb.Location = new System.Drawing.Point(12, 369);
             this.chatMsgTb.Name = "chatMsgTb";
-            this.chatMsgTb.Size = new System.Drawing.Size(494, 20);
+            this.chatMsgTb.Size = new System.Drawing.Size(584, 20);
             this.chatMsgTb.TabIndex = 3;
             this.chatMsgTb.KeyDown += new System.Windows.Forms.KeyEventHandler(this.chatMsgTb_KeyDown);
             // 
             // selfEndpointTb
             // 
             this.selfEndpointTb.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.selfEndpointTb.Location = new System.Drawing.Point(425, 1);
+            this.selfEndpointTb.BackColor = System.Drawing.SystemColors.InactiveBorder;
+            this.selfEndpointTb.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.selfEndpointTb.Location = new System.Drawing.Point(422, 1);
             this.selfEndpointTb.Name = "selfEndpointTb";
             this.selfEndpointTb.Size = new System.Drawing.Size(174, 20);
             this.selfEndpointTb.TabIndex = 4;
@@ -123,36 +129,46 @@
             this.keepAliveTimer.Interval = 1000;
             this.keepAliveTimer.Tick += new System.EventHandler(this.keepAliveTimer_Tick);
             // 
-            // queueTimer
+            // recvQueueTimer
             // 
-            this.queueTimer.Enabled = true;
-            this.queueTimer.Tick += new System.EventHandler(this.queueTimer_tick);
+            this.recvQueueTimer.Enabled = true;
+            this.recvQueueTimer.Interval = 166;
+            this.recvQueueTimer.Tick += new System.EventHandler(this.recvQueueTimer_Tick);
             // 
             // chatHistoryTb
             // 
             this.chatHistoryTb.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.chatHistoryTb.Location = new System.Drawing.Point(512, 244);
+            this.chatHistoryTb.Enabled = false;
+            this.chatHistoryTb.Location = new System.Drawing.Point(509, 244);
             this.chatHistoryTb.Multiline = true;
             this.chatHistoryTb.Name = "chatHistoryTb";
             this.chatHistoryTb.Size = new System.Drawing.Size(87, 145);
             this.chatHistoryTb.TabIndex = 5;
+            this.chatHistoryTb.Visible = false;
             this.chatHistoryTb.WordWrap = false;
+            // 
+            // sendQueueTimer
+            // 
+            this.sendQueueTimer.Enabled = true;
+            this.sendQueueTimer.Interval = 333;
+            this.sendQueueTimer.Tick += new System.EventHandler(this.sendQueueTimer_Tick);
             // 
             // ChatWindow
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(611, 398);
+            this.ClientSize = new System.Drawing.Size(608, 398);
+            this.Controls.Add(this.webBrowser1);
+            this.Controls.Add(this.chatMsgTb);
             this.Controls.Add(this.chatHistoryTb);
             this.Controls.Add(this.selfEndpointTb);
-            this.Controls.Add(this.chatMsgTb);
             this.Controls.Add(this.listBox1);
-            this.Controls.Add(this.webBrowser1);
             this.Controls.Add(this.menuStrip1);
             this.MainMenuStrip = this.menuStrip1;
             this.Name = "ChatWindow";
             this.Text = "ChatWindow";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.ChatWindow_FormClosing);
+            this.Load += new System.EventHandler(this.ChatWindow_Load);
             this.menuStrip1.ResumeLayout(false);
             this.menuStrip1.PerformLayout();
             this.ResumeLayout(false);
@@ -171,7 +187,8 @@
         private System.Windows.Forms.TextBox selfEndpointTb;
         private System.Windows.Forms.ToolStripMenuItem settingsToolStripMenuItem;
         private System.Windows.Forms.Timer keepAliveTimer;
-        private System.Windows.Forms.Timer queueTimer;
+        private System.Windows.Forms.Timer recvQueueTimer;
         private System.Windows.Forms.TextBox chatHistoryTb;
+        private System.Windows.Forms.Timer sendQueueTimer;
     }
 }

@@ -13,71 +13,55 @@ using System.Net;
 using System.Collections;
 using Microsoft.VisualBasic;
 
+/*
+ * For easy naviagtion/searching
+ * 
+ * Function Blocks:
+ *      CONSTRUCTOR
+ *      SEND MESSAGE
+ *      LISTENING LOOP
+ *      PROCESS
+ *      EVENT
+ */
+
 namespace FreeChat
 {
     public partial class ChatWindow : Form
     {
+// MAIN VARS BLOCK
         MulticonMgr cm;
         string msgHistory = "";
         bool listenSwitch = false;
         Thread thread;
         ArrayList PacketStack = new ArrayList();
         ArrayList ConvoStack = new ArrayList();
+// END MAIN VARS
+
+// CONSTRUCTOR FUNCTION
         public ChatWindow()
         {
             InitializeComponent();
             thread = new Thread(new ThreadStart(listenLoop));
+            setColors();
         }
-
-        private void connectToPeerToolStripMenuItem_Click(object sender, EventArgs e)
+// con
+        public void setColors()
         {
-            try
-            {
-                string s = Interaction.InputBox("Please enter the endpoint code of the other user:", "Connect to Endpoint");
-                cm.connectToEndpoint(s);
-                if (Properties.Settings.Default.Secret != "")
-                {
-                    byte[] key = Convert.FromBase64String(Properties.Settings.Default.Secret.Split(':')[0]);
-                    byte[] iv = Convert.FromBase64String(Properties.Settings.Default.Secret.Split(':')[1]);
-                    cm.tunnelPaths(key, iv);
+            this.BackColor = Properties.Settings.Default.ThemeBack;
+            this.ForeColor = Properties.Settings.Default.ThemeFore;
 
-                }
-                else
-                {
-                    cm.tunnelPaths();
-                }
-                listenSwitch = true;
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Connection failed!");
-            }
-            if (thread.ThreadState == ThreadState.Stopped)
-            {
-                thread = new Thread(new ThreadStart(listenLoop));
-            }
-            if (!(thread.ThreadState == ThreadState.Running))
-            {
-                thread.Start();
-            };
+            menuStrip1.BackColor = Properties.Settings.Default.ThemeBack; 
+            menuStrip1.ForeColor = Properties.Settings.Default.ThemeFore;
+
+            chatMsgTb.BackColor = Properties.Settings.Default.ThemeTBBack;
+            chatMsgTb.ForeColor = Properties.Settings.Default.ThemeTBFore;
+
+            selfEndpointTb.BackColor = Properties.Settings.Default.ThemeTBBack;
+            selfEndpointTb.ForeColor = Properties.Settings.Default.ThemeTBFore;
         }
+// CONSTUCTOR
 
-        private void settingsToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            UserConfig uc = new UserConfig();
-            uc.Show();
-        }
-
-        private void initializeToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            if (cm != null)
-            {
-                cm.closeAll();
-            }
-            cm = new MulticonMgr(int.Parse(Properties.Settings.Default.RecvPort), int.Parse(Properties.Settings.Default.SendPort));
-            selfEndpointTb.Text = cm.self.hexCode;
-        }
-
+// SEND MESSAGE FUNCTION     
         private void sendChatMessage()
         {
             string msg = "" +
@@ -92,7 +76,11 @@ namespace FreeChat
             }
             chatMsgTb.Text = "";
         }
+// END SEND MESSAGE
 
+
+
+// LISTENING LOOP FUNCTION
         private void listenLoop()
         {
             while (listenSwitch)
@@ -147,57 +135,11 @@ namespace FreeChat
 
             }
         }
+// END LISTENING LOOP
 
-        private void keepAliveTimer_Tick(object sender, EventArgs e)
-        {
 
-            {
-                if (cm != null)
-                {
-                    if (cm.getStatus())
-                    {
-                        if (Properties.Settings.Default.Secret != "")
-                        {
-                            byte[] key = Convert.FromBase64String(Properties.Settings.Default.Secret.Split(':')[0]);
-                            byte[] iv = Convert.FromBase64String(Properties.Settings.Default.Secret.Split(':')[1]);
-                            cm.tunnelPaths(key, iv);
 
-                        }
-                        else
-                        {
-                            cm.tunnelPaths();
-                        }
-                    }
-                    else
-                    {
-                        if (Properties.Settings.Default.Secret != "")
-                        {
-                            byte[] key = Convert.FromBase64String(Properties.Settings.Default.Secret.Split(':')[0]);
-                            byte[] iv = Convert.FromBase64String(Properties.Settings.Default.Secret.Split(':')[1]);
-                            cm.keepAlive(key, iv);
-
-                        }
-                        else
-                        {
-                            cm.keepAlive();
-                        }
-                    }
-                }
-            }
-        }
-
-        private void ChatWindow_FormClosing(object sender, FormClosingEventArgs e)
-        {
-            thread.Abort();
-            if (cm != null)
-            {
-                if (cm.getStatus()) { 
-                    cm.inClient.Close();
-                    cm.outClient.Close();
-                }
-            }
-        }
-
+// PROCESS FUNCTIONS
         private void processReceivedSendcode(string p)
         {
 
@@ -237,7 +179,7 @@ namespace FreeChat
                 }
                 if (!isDup)
                 {
-                    if (ConvoStack.Count > 10)
+                    if (ConvoStack.Count > (Properties.Settings.Default.ChatHistory))
                     {
                         ConvoStack.RemoveAt(0);
                     }
@@ -246,7 +188,7 @@ namespace FreeChat
 
             }
         }
-
+// Proc
         private void processReceivedSendcode(ChatMessage p)
         {
             ChatReceipt receipt = new ChatReceipt(cm.self.hexCode, p.owner, p.tickCode);
@@ -280,13 +222,14 @@ namespace FreeChat
             }
             if (!isDup)
             {
-                if (ConvoStack.Count > 10)
+                if (ConvoStack.Count > (Properties.Settings.Default.ChatHistory))
                 {
                     ConvoStack.RemoveAt(0);
                 }
                 ConvoStack.Add(p);
             }
         }
+// Proc
         private void processReceived()
         {
             //handle Receive queue
@@ -342,6 +285,7 @@ namespace FreeChat
                 PacketStack.Remove(packet);
             }
         }
+// Proc
         private void processSend()
         {
 
@@ -387,7 +331,7 @@ namespace FreeChat
                         }
                         if (!isDup)
                         {
-                            if (ConvoStack.Count > 10)
+                            if (ConvoStack.Count > (Properties.Settings.Default.ChatHistory))
                             {
                                 ConvoStack.RemoveAt(0);
                             }
@@ -409,7 +353,94 @@ namespace FreeChat
                 }
             }
         }
+// Proc
+        private void processConvo()
+        {
+            chatHistoryTb.Text = msgHistory;
 
+            string pageHead = "<body style='background-color:black; font-family: monospace; font-size:10pt'>";
+            string pageCode = pageHead;
+            ChatMessage pMsg = null;
+            foreach (ChatMessage cMsg in ConvoStack)
+            {
+                if (pMsg == null)
+                {
+                    pageCode += "<div style='color:#" + cMsg.color + "; margin:2px; border: solid 1px #" + cMsg.color + "; width:100%; '>";
+                }
+                else if (pMsg.owner != cMsg.owner)
+                {
+                    pageCode += "</div>";
+                    pageCode += "<div style='color:#" + cMsg.color + "; margin:2px; border: solid 1px #" + cMsg.color + "; width:100%; '>";
+                }
+                pageCode += "<b>" + cMsg.owner + "</b>: " +
+                    cMsg.message.Substring(0, cMsg.message.Length - 1) + "<br>";
+                pMsg = cMsg;
+            }
+            if (pageCode != pageHead)
+            {
+                pageCode += "</div>";
+            }
+            if (webBrowser1.DocumentText != pageCode)
+            {
+                webBrowser1.DocumentText = pageCode;
+            }
+        }
+// END PROCESS
+
+
+
+// EVENT FUNCTIONS
+        private void keepAliveTimer_Tick(object sender, EventArgs e)
+        {
+
+            {
+                if (cm != null)
+                {
+                    if (cm.getStatus())
+                    {
+                        if (Properties.Settings.Default.Secret != "")
+                        {
+                            byte[] key = Convert.FromBase64String(Properties.Settings.Default.Secret.Split(':')[0]);
+                            byte[] iv = Convert.FromBase64String(Properties.Settings.Default.Secret.Split(':')[1]);
+                            cm.tunnelPaths(key, iv);
+
+                        }
+                        else
+                        {
+                            cm.tunnelPaths();
+                        }
+                    }
+                    else
+                    {
+                        if (Properties.Settings.Default.Secret != "")
+                        {
+                            byte[] key = Convert.FromBase64String(Properties.Settings.Default.Secret.Split(':')[0]);
+                            byte[] iv = Convert.FromBase64String(Properties.Settings.Default.Secret.Split(':')[1]);
+                            cm.keepAlive(key, iv);
+
+                        }
+                        else
+                        {
+                            cm.keepAlive();
+                        }
+                    }
+                }
+            }
+        }
+// Event
+        private void ChatWindow_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            thread.Abort();
+            if (cm != null)
+            {
+                if (cm.getStatus())
+                {
+                    cm.inClient.Close();
+                    cm.outClient.Close();
+                }
+            }
+        }
+// Event
         private void chatMsgTb_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.KeyCode == Keys.Enter)
@@ -417,74 +448,102 @@ namespace FreeChat
                 sendChatMessage();
             }
         }
-
-        private void queueTimer_tick(object sender, EventArgs e)
+// Event
+        private void recvQueueTimer_Tick(object sender, EventArgs e)
         {
 
             if (cm != null)
             {
                 if (cm.getStatus())
                 {
-                    while (ConvoStack.Count > 11)
+                    while (ConvoStack.Count > (Properties.Settings.Default.ChatHistory))
                     {
-                        ConvoStack.RemoveAt(11);
+                        ConvoStack.RemoveAt(0);
                     }
                     processReceived();
-                    processSend();
-                    chatHistoryTb.Text = msgHistory;
-
-                    string pageHead = "<body style='background-color:black; font-family: monospace; font-size:10pt'>";
-                    string pageCode = pageHead;
-                    ChatMessage pMsg = null;
-                    foreach (ChatMessage cMsg in ConvoStack)
-                    {
-                        if (pMsg == null) {
-                            pageCode += "<div style='color:#" + cMsg.color + "; margin:2px; border: solid 1px #" + cMsg.color + "; width:100%; '>";
-                        }
-                        else if (pMsg.owner != cMsg.owner)
-                        {
-                            pageCode += "</div>";
-                            pageCode += "<div style='color:#" + cMsg.color + "; margin:2px; border: solid 1px #" + cMsg.color + "; width:100%; '>";
-                        }
-                        pageCode += "<b>" + cMsg.owner + "</b>: " +
-                            cMsg.message.Substring(0, cMsg.message.Length - 1)+"<br>";
-                        pMsg = cMsg;
-                    }
-                    if (pageCode != pageHead)
-                    {
-                        pageCode += "</div>";
-                    }
-                    if (webBrowser1.DocumentText != pageCode)
-                    {
-                        webBrowser1.DocumentText = pageCode;
-                    }
 
                 }
             }
 
         }
-
+// Event
         private void webBrowser1_DocumentCompleted(object sender, WebBrowserDocumentCompletedEventArgs e)
         {
 
             webBrowser1.Document.Window.ScrollTo(0, 5000);
         }
-    
-        
+// Event
+        private void connectToPeerToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                string s = Interaction.InputBox("Please enter the endpoint code of the other user:", "Connect to Endpoint");
+                cm.connectToEndpoint(s);
+                if (Properties.Settings.Default.Secret != "")
+                {
+                    byte[] key = Convert.FromBase64String(Properties.Settings.Default.Secret.Split(':')[0]);
+                    byte[] iv = Convert.FromBase64String(Properties.Settings.Default.Secret.Split(':')[1]);
+                    cm.tunnelPaths(key, iv);
+
+                }
+                else
+                {
+                    cm.tunnelPaths();
+                }
+                listenSwitch = true;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Connection failed!");
+            }
+            if (thread.ThreadState == ThreadState.Stopped)
+            {
+                thread = new Thread(new ThreadStart(listenLoop));
+            }
+            if (!(thread.ThreadState == ThreadState.Running))
+            {
+                thread.Start();
+            };
+        }
+// Event
+        private void settingsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            UserConfig uc = new UserConfig();
+            uc.Show();
+        }
+// Event
+        private void initializeToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (cm != null)
+            {
+                cm.closeAll();
+            }
+            cm = new MulticonMgr(int.Parse(Properties.Settings.Default.RecvPort), int.Parse(Properties.Settings.Default.SendPort));
+            selfEndpointTb.Text = cm.self.hexCode;
+        }
+// Event
+        private void sendQueueTimer_Tick(object sender, EventArgs e)
+        {
+            if (cm != null)
+            {
+                if (cm.getStatus())
+                {
+                    while (ConvoStack.Count > (Properties.Settings.Default.ChatHistory))
+                    {
+                        ConvoStack.RemoveAt(0);
+                    }
+                    processSend();
+                    processConvo();
+                }
+            }
+        }
+
+        private void ChatWindow_Load(object sender, EventArgs e)
+        {
+
+            webBrowser1.Url = new System.Uri("about:blank", System.UriKind.Absolute);
+            processConvo();
+        }
+// END EVENT
     }
 }
-
-
-/*
-I'm pretty much ripping off the original form so pasting the code here for easy bone picking.
-
-         //   textBox3.Text = "S:" + textBox2.Text + ":" +((int)(DateTime.Now.Ticks/100)).ToString("X8")+":"+ textBox1.Text;
-   
-        private void timer1_Tick(object sender, EventArgs e)
-        {
-        }
-
-        private void chatMsgTb_KeyDown(object sender, KeyEventArgs e)
-        {
-        }
-*/
