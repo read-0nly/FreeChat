@@ -52,6 +52,10 @@ namespace FreeChat
             {
                 MessageBox.Show("Connection failed!");
             }
+            if (thread.ThreadState == ThreadState.Stopped)
+            {
+                thread = new Thread(new ThreadStart(listenLoop));
+            }
             if (!(thread.ThreadState == ThreadState.Running))
             {
                 thread.Start();
@@ -235,9 +239,9 @@ namespace FreeChat
                 {
                     if (ConvoStack.Count > 10)
                     {
-                        ConvoStack.RemoveAt(10);
+                        ConvoStack.RemoveAt(0);
                     }
-                    ConvoStack.Insert(0, msgMsg);
+                    ConvoStack.Add(msgMsg);
                 }
 
             }
@@ -246,7 +250,6 @@ namespace FreeChat
         private void processReceivedSendcode(ChatMessage p)
         {
             ChatReceipt receipt = new ChatReceipt(cm.self.hexCode, p.owner, p.tickCode);
-            bool isDup = false;
             // adviseReceived
 
             if (Properties.Settings.Default.Secret != "")
@@ -264,6 +267,7 @@ namespace FreeChat
                     cm.neighbours[p.ownerHex].InPoint, cm.outClient);
             }
             //identify duplicates and add and rotate.
+            bool isDup = false;
             foreach (ChatMessage histMsg in ConvoStack)
             {
                 if (histMsg.tickCode == p.tickCode)
@@ -278,9 +282,9 @@ namespace FreeChat
             {
                 if (ConvoStack.Count > 10)
                 {
-                    ConvoStack.RemoveAt(10);
+                    ConvoStack.RemoveAt(0);
                 }
-                ConvoStack.Insert(0, p);
+                ConvoStack.Add(p);
             }
         }
         private void processReceived()
@@ -312,7 +316,7 @@ namespace FreeChat
                                             {
                                                 foreach (string hex in p.Split(':')[2].Split(';'))
                                                 {
-                                                    if (hex!= "" && cm.neighbours[hex] == null && hex!=cm.self.hexCode)
+                                                    if (hex!= "" && !cm.neighbours.ContainsKey(hex) && hex!=cm.self.hexCode)
                                                     {
                                                         cm.connectToEndpoint(hex);
                                                     }
@@ -369,11 +373,26 @@ namespace FreeChat
                     foreach (ChatMessage Sending in n.MsgStack)
                     {
                         message += Sending.ToString();
-                        if (ConvoStack.Count > 10)
+                        //identify duplicates and add and rotate.
+                        bool isDup = false;
+                        foreach (ChatMessage histMsg in ConvoStack)
                         {
-                            ConvoStack.RemoveAt(10);
+                            if (histMsg.tickCode == Sending.tickCode)
+                            {
+                                if (histMsg.owner == Sending.owner)
+                                {
+                                    isDup = true;
+                                }
+                            }
                         }
-                        ConvoStack.Insert(0, Sending);
+                        if (!isDup)
+                        {
+                            if (ConvoStack.Count > 10)
+                            {
+                                ConvoStack.RemoveAt(0);
+                            }
+                            ConvoStack.Add(Sending);
+                        }
                     }
                     message = message.Substring(0, message.Length);
                     if (Properties.Settings.Default.Secret != "")
@@ -414,13 +433,26 @@ namespace FreeChat
                     processSend();
                     chatHistoryTb.Text = msgHistory;
 
-                    string pageCode = "<body style='background-color:black;color:white;font-family: 'Lucida Console', Courier, monospace;font-size:14pt'>";
+                    string pageHead = "<body style='background-color:black; font-family: monospace; font-size:10pt'>";
+                    string pageCode = pageHead;
+                    ChatMessage pMsg = null;
                     foreach (ChatMessage cMsg in ConvoStack)
                     {
-                        pageCode += "<p style='color:#" + cMsg.color + "'>" +
-                            "<b>" + cMsg.owner + "</b>: " +
-                            cMsg.message.Substring(0, cMsg.message.Length - 1) +
-                            "</p>";
+                        if (pMsg == null) {
+                            pageCode += "<div style='color:#" + cMsg.color + "; margin:2px; border: solid 1px #" + cMsg.color + "; width:100%; '>";
+                        }
+                        else if (pMsg.owner != cMsg.owner)
+                        {
+                            pageCode += "</div>";
+                            pageCode += "<div style='color:#" + cMsg.color + "; margin:2px; border: solid 1px #" + cMsg.color + "; width:100%; '>";
+                        }
+                        pageCode += "<b>" + cMsg.owner + "</b>: " +
+                            cMsg.message.Substring(0, cMsg.message.Length - 1)+"<br>";
+                        pMsg = cMsg;
+                    }
+                    if (pageCode != pageHead)
+                    {
+                        pageCode += "</div>";
                     }
                     if (webBrowser1.DocumentText != pageCode)
                     {
@@ -430,6 +462,12 @@ namespace FreeChat
                 }
             }
 
+        }
+
+        private void webBrowser1_DocumentCompleted(object sender, WebBrowserDocumentCompletedEventArgs e)
+        {
+
+            webBrowser1.Document.Window.ScrollTo(0, 5000);
         }
     
         
