@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,73 +13,49 @@ using System.Security.Cryptography;
 
 namespace FreeChat
 {
-    class ConnectionManager
+    class MulticonMgr
     {
-        public IPEndPoint selfInPoint;
-        public IPEndPoint selfOutPoint;
-        public IPEndPoint remoteInPoint;
-        public IPEndPoint remoteOutPoint;
+        public ChatEndpoint self;
+        public Dictionary<string,ChatEndpoint> neighbours = new Dictionary<string,ChatEndpoint>();
         public UdpClient inClient;
         public UdpClient outClient;
 
-        public ConnectionManager(int inP, int outP)
+        public MulticonMgr(int inP, int outP)
         {
             inClient = new UdpClient(new IPEndPoint(IPAddress.Any, inP));
             outClient = new UdpClient(new IPEndPoint(IPAddress.Any, outP));
-            selfInPoint = getEndpoint(inClient);
-            selfOutPoint = getEndpoint(outClient);
+            self = new ChatEndpoint(getEndpoint(inClient),getEndpoint(outClient));
+        }
+        public void closeAll()
+        {
+            inClient.Close();
+            outClient.Close();
         }
         public bool getStatus()
         {
             return (
-                selfInPoint != null &&
-                selfOutPoint != null &&
-                remoteInPoint != null &&
-                remoteOutPoint != null &&
+                self.InPoint != null &&
+                self.OutPoint != null &&
+                neighbours.Count!= 0 &&
                 inClient.Client.IsBound &&
                 outClient.Client.IsBound );
         }
-        public void connectToEndpoint(IPAddress endpoint, int inport, int outport){
-            remoteInPoint = new IPEndPoint(endpoint,inport);
-            remoteOutPoint = new IPEndPoint(endpoint,outport);
-
-        }
-        public string encodeEndpointAddress(IPEndPoint inPoint, IPEndPoint outPoint)
-        {
-            string encodedAddress = "";
-            foreach (byte adrB in inPoint.Address.GetAddressBytes())
-            {
-                encodedAddress += ((int)adrB).ToString("X2");
-            }
-            encodedAddress += inPoint.Port.ToString("X4");
-            encodedAddress += outPoint.Port.ToString("X4");
-            return encodedAddress;
-
-        }
-        public IPEndPoint[] decodeEndpointAddress(string endPoint)
-        {
-            IPEndPoint[] encodedAddress = new IPEndPoint[2];
-            string ip = Int32.Parse(endPoint.Substring(0, 2), System.Globalization.NumberStyles.HexNumber).ToString() + "." +
-                Int32.Parse(endPoint.Substring(2, 2), System.Globalization.NumberStyles.HexNumber).ToString() + "." +
-                Int32.Parse(endPoint.Substring(4, 2), System.Globalization.NumberStyles.HexNumber).ToString() + "." +
-                Int32.Parse(endPoint.Substring(6, 2), System.Globalization.NumberStyles.HexNumber).ToString();
-            int inPortI = Int32.Parse(endPoint.Substring(8, 4), System.Globalization.NumberStyles.HexNumber);
-            int outPortI = Int32.Parse(endPoint.Substring(12, 4), System.Globalization.NumberStyles.HexNumber);
-            encodedAddress[0] = new IPEndPoint(IPAddress.Parse(ip), inPortI);
-            encodedAddress[1] = new IPEndPoint(IPAddress.Parse(ip), outPortI);
-            return encodedAddress;
-
-        }
-        public void loadRemoteEndpointPair(IPEndPoint[] epPair)
-        {
-            remoteInPoint = epPair[0];
-            remoteOutPoint = epPair[1];
+        public void connectToEndpoint(string s){
+            neighbours.Add(s,new ChatEndpoint(s));
         }
 
         public void tunnelPaths()
         {
-            sendString("!:PingPong", remoteInPoint, outClient);
-            sendString("!:PingPong", remoteOutPoint, inClient);
+            string neighborString = "!:Net:";
+            foreach (ChatEndpoint n in neighbours.Values)
+            {
+                neighborString += n.encodeEndpointAddress() + ";";
+            }
+            foreach (ChatEndpoint n in neighbours.Values)
+            {
+                sendString(neighborString, n.InPoint, outClient);
+                sendString(neighborString, n.OutPoint, inClient);
+            }
         }
         public void keepAlive()
         {
@@ -87,15 +64,23 @@ namespace FreeChat
         }
         public void tunnelPaths(byte[] key, byte[] iv)
         {
-            byte[] encPing = this.EncryptStringToBytes("!:PingPong", key, iv);
-            sendBytes(encPing, remoteInPoint, outClient);
-            sendBytes(encPing, remoteOutPoint, inClient);
+            string neighborString = "!:Net:";
+            foreach (ChatEndpoint n in neighbours.Values)
+            {
+                neighborString += n.encodeEndpointAddress() + ";";
+            }
+            byte[] encPing = MulticonMgr.EncryptStringToBytes(neighborString, key, iv);
+            foreach (ChatEndpoint n in neighbours.Values)
+            {
+                sendBytes(encPing, n.InPoint, outClient);
+                sendBytes(encPing, n.OutPoint, inClient);
+            }
         }
         public void keepAlive(byte[] key, byte[] iv)
         {
-            byte[] encPing = this.EncryptStringToBytes("!:PingPong", key, iv);
-            sendBytes(encPing, selfInPoint, outClient);
-            sendBytes(encPing, selfOutPoint, inClient);
+            byte[] encPing = MulticonMgr.EncryptStringToBytes("!:PingPong", key, iv);
+            sendBytes(encPing, self.InPoint, outClient);
+            sendBytes(encPing, self.OutPoint, inClient);
         }
         IPEndPoint getEndpoint(UdpClient udp)
         {            
@@ -114,23 +99,23 @@ namespace FreeChat
 
             }
         }
-        public IPEndPoint stringToEndpoint(String ep)
+        public static IPEndPoint stringToEndpoint(String ep)
         {
             return new IPEndPoint(IPAddress.Parse(ep.Split(':')[0]), int.Parse(ep.Split(':')[1]));
         }
 
-        public bool sendString(string message, string ep, UdpClient udp)
+        public static bool sendString(string message, string ep, UdpClient udp)
         {
             IPEndPoint target = stringToEndpoint(ep);
             byte[] byteMsg = ASCIIEncoding.ASCII.GetBytes(message);
             return sendBytes(byteMsg, target, udp);
         }
-        public bool sendString(string message, IPEndPoint ep, UdpClient udp)
+        public static bool sendString(string message, IPEndPoint ep, UdpClient udp)
         {
             byte[] byteMsg = ASCIIEncoding.ASCII.GetBytes(message);
             return sendBytes(byteMsg, ep, udp);
         }
-        public bool sendBytes(byte[] message, IPEndPoint ep, UdpClient udp)
+        public static bool sendBytes(byte[] message, IPEndPoint ep, UdpClient udp)
         {
             try
             {
@@ -148,12 +133,12 @@ namespace FreeChat
             }
             return false;
         }
-        public string generateKey()
+        public static string generateKey()
         {
             Rijndael rij = Rijndael.Create();
             return(Convert.ToBase64String(rij.Key) + ":" + Convert.ToBase64String(rij.IV));
         }
-        public byte[] EncryptStringToBytes(string plainText, byte[] Key, byte[] IV)
+        public static byte[] EncryptStringToBytes(string plainText, byte[] Key, byte[] IV)
         {
             // Check arguments.
             if (plainText == null || plainText.Length <= 0)
@@ -193,7 +178,7 @@ namespace FreeChat
             return encrypted;
         }
 
-        public string DecryptStringFromBytes(byte[] cipherText, byte[] Key, byte[] IV)
+        public static string DecryptStringFromBytes(byte[] cipherText, byte[] Key, byte[] IV)
         {
             // Check arguments.
             if (cipherText == null || cipherText.Length <= 0)
@@ -241,10 +226,10 @@ namespace FreeChat
             try
             {
                 //IPEndPoint object will allow us to read datagrams sent from any source.
-                IPEndPoint RemoteIpEndPoint = new IPEndPoint(IPAddress.Any, 0);
+                IPEndPoint RemoteIpEndPoint = new IPEndPoint(IPAddress.Any, self.InPoint.Port);
 
                 // Blocks until a message returns on this socket from a remote host.
-                Byte[] receiveBytes = udp.Receive(ref remoteOutPoint);
+                Byte[] receiveBytes = udp.Receive(ref RemoteIpEndPoint);
                 return receiveBytes;
             }
             catch (Exception e)
