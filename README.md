@@ -26,4 +26,4 @@ Put text in the bar at the bottom and press enter and enjoy.
 
 ![](./16.png)
 
-Want more people in the convo? Give the secret to the third, trade endpoints with the third. The third will get the seconds address in the ping as well and everyone adds the missing ones to their neighbors and tunnels to them and starts routing messages to all neighbors. As long as one person in the convo trades endpoints with someone and everyone has the same secret, the network meshes out to all participants.
+Want more people in the convo? Give the secret to the third, trade endpoints with the third. The third will get the seconds address in the ping and vice-versa and everyone adds the missing ones to their neighbors and tunnels to them and starts routing messages to all neighbors. As long as one person in the convo trades endpoints with someone and everyone has the same secret, the network meshes out to all participants.
