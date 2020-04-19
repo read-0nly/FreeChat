@@ -14,6 +14,8 @@ namespace FreeChat
         public string tickCode;
         public string color;
         public string message;
+        public bool safe = true;
+        public bool whisper = false;
 
         public ChatMessage(string raw)
         {
@@ -22,9 +24,24 @@ namespace FreeChat
             owner = System.Net.WebUtility.UrlDecode(parts[1]);
             tickCode = parts[2];
             color = parts[3];
-            message = System.Net.WebUtility.UrlDecode(parts[4]);
+            whisper = (parts.Count() > 5  && parts[5] == "Whisper");
+            setMessage(parts[4]);
         }
-
+        public void setMessage(string s)
+        {
+            if (safe)
+            {
+                message = System.Net.WebUtility.HtmlEncode(System.Net.WebUtility.UrlDecode(s));
+            }
+            else
+            {
+                message = System.Net.WebUtility.UrlDecode(s);
+            }
+        }
+        public bool compareOwner(string o)
+        {
+            return (System.Net.WebUtility.UrlDecode(o) == owner);
+        }
         public override string ToString()
         {
             return (

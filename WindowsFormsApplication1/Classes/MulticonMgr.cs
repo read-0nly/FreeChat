@@ -49,7 +49,7 @@ namespace FreeChat
             string neighborString = "!:Net:";
             foreach (ChatEndpoint n in neighbours.Values)
             {
-                neighborString += n.encodeEndpointAddress() + ";";
+                neighborString += n.hexCode + ";";
             }
             foreach (ChatEndpoint n in neighbours.Values)
             {
@@ -220,8 +220,8 @@ namespace FreeChat
 
             return plaintext;
         }
-    
-        public byte[] receiveBytes(UdpClient udp)
+
+        public Packet receiveBytes(UdpClient udp)
         {
             try
             {
@@ -230,7 +230,8 @@ namespace FreeChat
 
                 // Blocks until a message returns on this socket from a remote host.
                 Byte[] receiveBytes = udp.Receive(ref RemoteIpEndPoint);
-                return receiveBytes;
+                Packet p = new Packet(receiveBytes, RemoteIpEndPoint);
+                return p;
             }
             catch (Exception e)
             {
