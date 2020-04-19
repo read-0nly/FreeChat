@@ -24,7 +24,7 @@ namespace FreeChat
             owner = System.Net.WebUtility.UrlDecode(parts[1]);
             tickCode = parts[2];
             color = parts[3];
-            whisper = (parts.Count() > 5  && parts[5] == "Whisper");
+            whisper = (parts.Count() > 5 && (parts[5] == "Whisper;" || parts[5] == "Whisper"));
             setMessage(parts[4]);
         }
         public void setMessage(string s)
@@ -49,7 +49,8 @@ namespace FreeChat
                 System.Net.WebUtility.UrlEncode(owner) + ":" +
                 tickCode + ":" +
                 color + ":" +
-                System.Net.WebUtility.UrlEncode(message) +";"
+                System.Net.WebUtility.UrlEncode(message) +
+                (whisper?":Whisper":"")+";"
                 );
         }
     }
