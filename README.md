@@ -1,9 +1,12 @@
 # FreeChat
 P2P Messenger
 ## Changelog
-4/19/2020 - Added PM function / Whisper, as well as userlist and online status. Doubleclick on username in list to send whisper.
+4/19/2020 - Added PM function / Whisper, as well as userlist and online status. Doubleclick on username in list to send whisper. Added Safe behavior (HTML will no longer render by default and can only do so if the message is flagged for unsafe. In future, want to be able to grant per-user or per-message render functionality)
+4/18/2020 - Added Multipoint chat, split send and receive, color scheming, reworked entire GUI and flow, fixed duplicate message bugs
+4/16/2020 - Hammered out chat protocol, Added encryption, test test test
+4/15 - Initial GUI, bringing STUN in from HolePuncher
 
-## Using this thing
+## Using this thing - updated 4/18/2020
 
 Click settings to set your identity information
 ![](./11.png)
