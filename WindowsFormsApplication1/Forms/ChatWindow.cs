@@ -35,6 +35,10 @@ namespace FreeChat
         Thread thread;
         ArrayList PacketStack = new ArrayList();
         ArrayList ConvoStack = new ArrayList();
+        int offlineTimer = 10; //seconds
+        int timeoutTimer = 5; //minutes
+
+
 // END MAIN VARS
 
 // CONSTRUCTOR FUNCTION
@@ -64,8 +68,16 @@ namespace FreeChat
 // SEND MESSAGE FUNCTION     
         private void sendChatMessage()
         {
+            /*
+             *
+             * 
+             * 
+             * MAKE THIS INTO A SPEPARATE FUNCTION SO YOU CAN DO TARGETED MESSAGES
+             * 
+             * 
+             */
             string msg = "" +
-                cm.self.hexCode+":"+
+                cm.self.hexCode + ":" +
                 WebUtility.UrlEncode(Properties.Settings.Default.Name) + ":" +
                 ((int)(DateTime.Now.Ticks / 100)).ToString("X8") + ":" +
                 Properties.Settings.Default.Color + ":" +
@@ -75,6 +87,20 @@ namespace FreeChat
                 n.MsgStack.Add(new ChatMessage(msg));
             }
             chatMsgTb.Text = "";
+        }
+        private void sendChatMessage(ChatEndpoint target)
+        {
+            string whisper = Microsoft.VisualBasic.Interaction.InputBox("Please enter your message", "Whisper");
+            if (whisper != null && whisper != "")
+            {
+                string msg = "" +
+                    cm.self.hexCode + ":" +
+                    WebUtility.UrlEncode(Properties.Settings.Default.Name) + ":" +
+                    ((int)(DateTime.Now.Ticks / 100)).ToString("X8") + ":" +
+                    Properties.Settings.Default.Color + ":" +
+                    WebUtility.UrlEncode(whisper) + ":Whisper;";
+                target.MsgStack.Add(new ChatMessage(msg));
+            }
         }
 // END SEND MESSAGE
 
@@ -90,11 +116,22 @@ namespace FreeChat
                 {
                     byte[] key = Convert.FromBase64String(Properties.Settings.Default.Secret.Split(':')[0]);
                     byte[] iv = Convert.FromBase64String(Properties.Settings.Default.Secret.Split(':')[1]);
-                    msg = MulticonMgr.DecryptStringFromBytes(cm.receiveBytes(cm.inClient), key, iv);
+                    Packet p = cm.receiveBytes(cm.inClient);
+                    string ep = ChatEndpoint.encodeEndpointAddress((new IPEndPoint(p.sender.Address, 0)),p.sender);
+                    ep = ep.Substring(0, 8) + "...." + ep.Substring(12, 4);
+                    foreach (string n in cm.neighbours.Keys)
+                    {
+                        if (System.Text.RegularExpressions.Regex.Match(n, ep).Success)
+                        {
+                            cm.neighbours[n].lastSeen = DateTime.Now;
+                        }
+                    }
+                    msg = MulticonMgr.DecryptStringFromBytes(p.bytes, key, iv);
+
                 }
-                else
-                {
-                    msg = Encoding.ASCII.GetString(cm.receiveBytes(cm.inClient));
+                else{
+                    Packet p = cm.receiveBytes(cm.inClient);
+                    msg = Encoding.ASCII.GetString(p.bytes);
                 }
 
                 this.msgHistory = msg + "\r\n" + this.msgHistory;
@@ -148,6 +185,7 @@ namespace FreeChat
             foreach (string msg in msgArray)
             {
                 ChatMessage msgMsg = new ChatMessage(msg);
+                cm.neighbours[msgMsg.ownerHex].nickname = msgMsg.owner;
                 ChatReceipt receipt = new ChatReceipt(cm.self.hexCode, msgMsg.owner, msgMsg.tickCode);
                 bool isDup = false;
                 // adviseReceived
@@ -192,6 +230,15 @@ namespace FreeChat
         private void processReceivedSendcode(ChatMessage p)
         {
             ChatReceipt receipt = new ChatReceipt(cm.self.hexCode, p.owner, p.tickCode);
+            if (!(cm.neighbours[p.ownerHex].nickname == p.owner))
+            {
+                cm.neighbours[p.ownerHex].nickname = p.owner;
+                object[] bucket = new object[listBox1.Items.Count];
+                listBox1.Items.CopyTo(bucket,0);
+                listBox1.Items.Clear();
+                listBox1.Items.AddRange(bucket);
+            }
+            
             // adviseReceived
 
             if (Properties.Settings.Default.Secret != "")
@@ -356,7 +403,8 @@ namespace FreeChat
 // Proc
         private void processConvo()
         {
-            chatHistoryTb.Text = msgHistory;
+            Console.WriteLine(msgHistory);
+            msgHistory = "";
 
             string pageHead = "<body style='background-color:black; font-family: monospace; font-size:10pt'>";
             string pageCode = pageHead;
@@ -365,7 +413,7 @@ namespace FreeChat
             {
                 if (pMsg == null)
                 {
-                    pageCode += "<div style='color:#" + cMsg.color + "; margin:2px; border: solid 1px #" + cMsg.color + "; width:100%; '>";
+                    pageCode += "<div style='color:#" +cMsg.color + "; margin:2px; border: solid 1px #" + cMsg.color + "; width:100%; '>";
                 }
                 else if (pMsg.owner != cMsg.owner)
                 {
@@ -373,7 +421,9 @@ namespace FreeChat
                     pageCode += "<div style='color:#" + cMsg.color + "; margin:2px; border: solid 1px #" + cMsg.color + "; width:100%; '>";
                 }
                 pageCode += "<b>" + cMsg.owner + "</b>: " +
-                    cMsg.message.Substring(0, cMsg.message.Length - 1) + "<br>";
+                    (cMsg.whisper?"<i>":"") + 
+                     cMsg.message.Substring(0, cMsg.message.Length - 1) +
+                     (cMsg.whisper ? "</i>" : "") + "<br>";
                 pMsg = cMsg;
             }
             if (pageCode != pageHead)
@@ -384,6 +434,7 @@ namespace FreeChat
             {
                 webBrowser1.DocumentText = pageCode;
             }
+
         }
 // END PROCESS
 
@@ -408,6 +459,21 @@ namespace FreeChat
                         else
                         {
                             cm.tunnelPaths();
+                        }
+
+                        ArrayList remNBucket = new ArrayList();
+                        foreach (ChatEndpoint n in cm.neighbours.Values)
+                        {
+                            n.online = (!((DateTime.Now - n.lastSeen).Seconds > offlineTimer));
+
+                            if ((DateTime.Now - n.lastSeen).Minutes > timeoutTimer)
+                            {
+                                remNBucket.Add(n.hexCode);
+                            }
+                        }
+                        foreach (string n in remNBucket)
+                        {
+                            cm.neighbours.Remove(n);
                         }
                     }
                     else
@@ -491,6 +557,7 @@ namespace FreeChat
                     cm.tunnelPaths();
                 }
                 listenSwitch = true;
+                listBox1.Items.Add(cm.neighbours[s]);
             }
             catch (Exception ex)
             {
@@ -543,6 +610,16 @@ namespace FreeChat
 
             webBrowser1.Url = new System.Uri("about:blank", System.UriKind.Absolute);
             processConvo();
+        }
+
+        private void listBox1_MouseDoubleClick(object sender, MouseEventArgs e)
+        {
+            sendChatMessage((ChatEndpoint)listBox1.SelectedItem);
+        }
+
+        private void listBox1_SelectedIndexChanged(object sender, EventArgs e)
+        {
+
         }
 // END EVENT
     }

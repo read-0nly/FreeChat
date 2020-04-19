@@ -13,7 +13,7 @@ namespace FreeChat
         public string Tick;
         public ChatReceipt(string hex, string own, string tck)
         {
-            Owner = own;
+            Owner = System.Net.WebUtility.UrlEncode(own);
             Hex = hex;
             Tick = tck;
         }

@@ -55,6 +55,7 @@
     <Compile Include="Classes\ChatEndpoint.cs" />
     <Compile Include="Classes\ChatMessage.cs" />
     <Compile Include="Classes\ChatReceipt.cs" />
+    <Compile Include="Classes\Packet.cs" />
     <Compile Include="Forms\ChatWindow.cs">
       <SubType>Form</SubType>
     </Compile>

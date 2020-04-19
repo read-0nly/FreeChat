@@ -13,20 +13,27 @@ namespace FreeChat
     {
         public IPEndPoint InPoint;
         public IPEndPoint OutPoint;
+        public string nickname = "anonymous";
+        public bool online = false;
         public string hexCode;
         public ArrayList ReceivedStack = new ArrayList();
         public ArrayList MsgStack = new ArrayList();
+        public DateTime lastSeen = new DateTime();
 
         public ChatEndpoint(string s)
         {
             loadEndpointPair(ChatEndpoint.decodeEndpointAddress(s));
             hexCode = s;
+            lastSeen = DateTime.Now;
+            online = true;
         }
         public ChatEndpoint(IPEndPoint inP, IPEndPoint outP)
         {
             InPoint = inP;
             OutPoint = outP;
             hexCode = encodeEndpointAddress();
+            lastSeen = DateTime.Now;
+            online = true;
         }
         public static string encodeEndpointAddress(IPEndPoint inPoint, IPEndPoint outPoint)
         {
@@ -70,6 +77,12 @@ namespace FreeChat
         {
             InPoint = epPair[0];
             OutPoint = epPair[1];
+        }
+
+        public override string ToString()
+        {
+            if(online){return nickname;}
+            else{return "- "+nickname+" -";}
         }
     }
 }
