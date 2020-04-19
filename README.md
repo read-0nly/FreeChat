@@ -1,5 +1,6 @@
 # FreeChat
-P2P Messenger
+P2P2P Messenger using UDP hole punching to set up direct connections between clients and shared-secret encryption.
+
 ## Changelog
 - 4/19/2020 - Added PM function / Whisper, as well as userlist and online status. Doubleclick on username in list to send whisper. Added Safe behavior (HTML will no longer render by default and can only do so if the message is flagged for unsafe. In future, want to be able to grant per-user or per-message render functionality)
 - 4/18/2020 - Added Multipoint chat, split send and receive, color scheming, reworked entire GUI and flow, fixed duplicate message bugs
