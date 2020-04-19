@@ -1,5 +1,7 @@
 # FreeChat
 P2P Messenger
+## Changelog
+4/19/2020 - Added PM function / Whisper, as well as userlist and online status. Doubleclick on username in list to send whisper.
 
 ## Using this thing
 
